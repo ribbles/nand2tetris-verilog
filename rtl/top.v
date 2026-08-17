@@ -1,4 +1,3 @@
-
 module top (
     input  wire       clk,
     input  wire       btn1,
@@ -13,9 +12,9 @@ module top (
 
 wire [4:0] btn = { btn_space, btn_enter, btn_backspace, btn_left, btn_up }
 
-Computer computer (
-    .clk(clk),
-    .reset(btn1),
+    Computer computer (
+        .clk(clk),
+        .reset(btn1),
     .btn
     input wire clk,
     input wire reset,

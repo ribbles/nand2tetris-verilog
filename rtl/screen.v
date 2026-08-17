@@ -29,13 +29,6 @@ module Screen (
     //     $readmemb("Boot.hack", rom);
   end
   
-//   always @(negedge clk) begin
-//     out <= frame_buffer[address];
-//     if (load) begin // write
-//       frame_buffer[address] <= in;
-//     end
-//   end
-  
   always @(negedge clk) begin
     if (load) begin
         frame_buffer[address] <= in;
@@ -43,7 +36,7 @@ module Screen (
     end else begin
         out <= frame_buffer[address]; // Normal read
     end
-end
+  end
   
   // Port B Read-Only Logic (Synchronous)
     always @(posedge clk) begin

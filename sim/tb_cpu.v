@@ -32,7 +32,7 @@ module tb_cpu;
     integer exp_writeM, exp_addr, exp_pc, exp_outM;
 
     initial begin
-        file = $fopen("CPU.cmp", "r");
+        file = $fopen("cmp/CPU.cmp", "r");
         if (!file) begin
             $display("[ERROR] Could not open CPU.cmp");
             $finish;

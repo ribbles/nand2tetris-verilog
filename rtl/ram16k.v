@@ -30,6 +30,6 @@ module RAM16K (
     end else begin
         out <= ram[address]; // Normal read
     end
-end
+  end
   
 endmodule
