@@ -25,7 +25,7 @@ SYNTH_FLAGS    ?= -noabc9 -nowidelut
 NEXTPNR_FLAGS  ?= --placer heap --seed 7
 BITSTREAM      ?= top.fs
 BUILD_DIR      ?= build
-PROGRAM        ?= sim/hack/Rect.hack
+PROGRAM        ?= sim/hack/Pong.hack
 RTL            := $(wildcard rtl/*.v)
 
 .DEFAULT_GOAL := all

@@ -28,5 +28,8 @@ IO_PORT "btn_enter" IO_TYPE=LVCMOS18 PULL_MODE=UP;
 IO_LOC  "btn_backspace" 27;
 IO_PORT "btn_backspace" IO_TYPE=LVCMOS18 PULL_MODE=UP;
 
-IO_LOC  "btn_up" 29;
+IO_LOC  "btn_left" 29;
+IO_PORT "btn_left" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+
+IO_LOC  "btn_up" 30;
 IO_PORT "btn_up" IO_TYPE=LVCMOS18 PULL_MODE=UP;
