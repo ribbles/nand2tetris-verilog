@@ -14,6 +14,7 @@ module tb_cpu;
     CPU uut (
         .clk(clk),
         .reset(reset),
+        .enable(1'b1),
         .inM(inM),
         .instruction(instruction),
         .outM(outM),

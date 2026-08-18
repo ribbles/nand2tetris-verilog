@@ -76,14 +76,15 @@ $(eval $(call SIM_RULE,flash_model,flash608k_model.v))
 $(eval $(call SIM_RULE,flash_primative,flash608k_model.v ../rtl/flash608k_primitive.v))
 $(eval $(call SIM_RULE,flash_reader,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v))
 $(eval $(call SIM_RULE,rom_flash,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v ../rtl/rom_flash.v))
+$(eval $(call SIM_RULE,computer,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v ../rtl/rom_flash.v ../rtl/alu.v ../rtl/pc.v ../rtl/cpu.v ../rtl/ram16k.v ../rtl/screen.v ../rtl/keyboard.v ../rtl/memory.v ../rtl/fetch_fsm.v ../rtl/computer.v))
 
-sim_all: sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash
+sim_all: sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer
 
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -f top.json top_pnr.json $(BITSTREAM) Prog.hack
 
-.PHONY: all verify bitstream gowin_bitstream gowin_build flash sram clean sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash
+.PHONY: all verify bitstream gowin_bitstream gowin_build flash sram clean sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer
 .INTERMEDIATE: top.json top_pnr.json
 # Alternative bitstream flow using the installed Gowin IDE.
 gowin_bitstream: Prog.hack build_gowin.tcl tangnano9k.cst

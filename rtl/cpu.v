@@ -1,6 +1,7 @@
 module CPU (
     input  wire        clk,
     input  wire        reset,
+    input  wire        enable,
     input  wire [15:0] inM,
     input  wire [15:0] instruction,
     output wire [15:0] outM,
@@ -22,29 +23,40 @@ module CPU (
                 (instruction[0] & pos);
 
     assign outM = alu_out;
-    assign writeM = c_inst & dest[0];
+    assign writeM = enable & c_inst & dest[0];
     assign addressM = a_reg[14:0];
 
     PC pc1 (
-        .clk(clk), .reset(reset), .load(c_inst & jump),
-        .inc(~(c_inst & jump)), .in(a_reg[14:0]), .out(pc)
+        .clk(clk),
+        .reset(reset),
+        .load(enable & c_inst & jump),
+        .inc(enable & ~(c_inst & jump)),
+        .in(a_reg[14:0]),
+        .out(pc)
     );
 
     HackALU alu1 (
         .x(d_reg), .y(alu_y),
-        .zx(instruction[11]), .nx(instruction[10]),
-        .zy(instruction[9]), .ny(instruction[8]),
-        .f(instruction[7]), .no(instruction[6]),
-        .out(alu_out), .zr(zr), .ng(ng)
+        .zx(instruction[11]),
+        .nx(instruction[10]),
+        .zy(instruction[9]),
+        .ny(instruction[8]),
+        .f(instruction[7]),
+        .no(instruction[6]),
+        .out(alu_out),
+        .zr(zr),
+        .ng(ng)
     );
 
     always @(posedge clk) begin
-        if (a_inst)
-            a_reg <= instruction;
-        else if (dest[2])
-            a_reg <= alu_out;
+        if (enable) begin
+            if (a_inst)
+                a_reg <= instruction;
+            else if (dest[2])
+                a_reg <= alu_out;
 
-        if (c_inst & dest[1])
-            d_reg <= alu_out;
+            if (c_inst & dest[1])
+                d_reg <= alu_out;
+        end
     end
 endmodule
