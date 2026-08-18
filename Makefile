@@ -60,7 +60,7 @@ $(BUILD_DIR):
 
 define SIM_RULE
 sim_$(1): | $(BUILD_DIR)
-	cd sim && $(IVERILOG) -g2012 -s tb_$(1) -o ../$(BUILD_DIR)/tb_$(1).out $(2) tb_$(1).v
+	cd sim && $(IVERILOG) -g2012 -DSIMULATION -s tb_$(1) -o ../$(BUILD_DIR)/tb_$(1).out $(2) tb_$(1).v
 	cd sim && $(VVP) ../$(BUILD_DIR)/tb_$(1).out
 endef
 

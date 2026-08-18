@@ -3,18 +3,19 @@
 <Project>
     <Template>FPGA</Template>
     <Version>5</Version>
-    <Device name="GW1N-9C" pn="GW1N-LV9QN48C6/I5">gw1n9c-000</Device>
+    <Device name="GW1NR-9C" pn="GW1NR-LV9QN88PC6/I5">gw1n9c-000</Device>
     <FileList>
-<File path="rtl/alu.v" type="file.verilog" enable="1"/>
-<File path="rtl/computer.v" type="file.verilog" enable="1"/>
-<File path="rtl/cpu.v" type="file.verilog" enable="1"/>
-<File path="rtl/keyboard.v" type="file.verilog" enable="1"/>
-<File path="rtl/memory.v" type="file.verilog" enable="1"/>
-<File path="rtl/pc.v" type="file.verilog" enable="1"/>
-<File path="rtl/ram16k.v" type="file.verilog" enable="1"/>
-<File path="rtl/rom32k.v" type="file.verilog" enable="1"/>
-<File path="rtl/screen.v" type="file.verilog" enable="1"/>
-<File path="rtl/top.v" type="file.verilog" enable="1"/>
+        <File path="rtl/alu.v" type="file.verilog" enable="1"/>
+        <File path="rtl/computer.v" type="file.verilog" enable="1"/>
+        <File path="rtl/cpu.v" type="file.verilog" enable="1"/>
+        <File path="rtl/keyboard.v" type="file.verilog" enable="1"/>
+        <File path="rtl/memory.v" type="file.verilog" enable="1"/>
+        <File path="rtl/pc.v" type="file.verilog" enable="1"/>
+        <File path="rtl/ram16k.v" type="file.verilog" enable="1"/>
+        <File path="rtl/rom32k.v" type="file.verilog" enable="1"/>
+        <File path="rtl/screen.v" type="file.verilog" enable="1"/>
+        <File path="rtl/top.v" type="file.verilog" enable="1"/>
         <File path="tangnano9k.cst" type="file.cst" enable="1"/>
+        <File path="tangnano9k.sdc" type="file.sdc" enable="1"/>
     </FileList>
 </Project>

@@ -6,7 +6,8 @@
 module Computer (
     input wire clk,
     input wire reset,
-    input wire [4:0] btn
+    input wire [4:0] btn,
+    output wire [5:0] debug
 );
 
     wire [15:0] instruction;
@@ -40,5 +41,7 @@ module Computer (
     .out(inM),
     .btn(btn)
   );
+
+    assign debug = pc[5:0];
 
 endmodule

@@ -1,6 +1,16 @@
 set_device GW1NR-LV9QN88PC6/I5 -device_version C
 
-add_folder rtlcd
+add_file rtl/alu.v
+add_file rtl/computer.v
+add_file rtl/cpu.v
+add_file rtl/keyboard.v
+add_file rtl/memory.v
+add_file rtl/pc.v
+add_file rtl/ram16k.v
+add_file rtl/rom32k.v
+add_file rtl/screen.v
+add_file rtl/top.v
+
 add_file tangnano9k.cst
 
 set_option -top_module top

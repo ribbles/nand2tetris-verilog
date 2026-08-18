@@ -14,10 +14,10 @@ module Memory (
 
   wire is_ram = address[14] == 1'b0;
   wire is_scr = address[14:13] == 2'b10;
-  wire is_kbd = address == 15'd25196;
+  wire is_kbd = address == 15'h6000;
   wire [15:0] ram_in, scr_in;
   wire [15:0] ram_out, scr_out, kbd_out;
-  wire [12:0] read_addr; // TODO
+  wire [12:0] read_addr = 13'd0; // Display reader not connected yet
   wire [15:0] read_data; // TODO
   
   assign ram_in = is_ram ? in : 16'b0;
@@ -29,7 +29,7 @@ module Memory (
   
   assign out = is_ram ? ram_out :
                is_scr ? scr_out :
-    		   is_kbd ? kbd_out : out;
+    		   is_kbd ? kbd_out : 16'd0;
   
 
 endmodule

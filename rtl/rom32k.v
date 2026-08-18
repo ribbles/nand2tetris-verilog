@@ -11,8 +11,6 @@ module ROM32K (
     $readmemb("Prog.hack", rom);
   end
   assign  out = rom[address];
-  
-//   always @(negedge clk) begin
-//   end
+
   
 endmodule

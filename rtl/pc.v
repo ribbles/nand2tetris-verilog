@@ -15,7 +15,7 @@ module PC (
     end else if (load) begin
       pc_reg <= in;
     end else if (inc) begin
-      pc_reg <= out + 1;
+      pc_reg <= out + 15'd1;
     end else begin
       pc_reg <= out;
     end

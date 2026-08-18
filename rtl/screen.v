@@ -22,9 +22,11 @@ module Screen (
   reg [15:0] frame_buffer [0:8191];
   
 
-  `ifndef SYNTHESIS
+  `ifdef SIMULATION
+integer i;
+
   initial begin
-    for (int i = 0; i < $size(frame_buffer); i++) begin
+    for (i = 0; i < 8192; i = i + 1) begin
       frame_buffer[i] = 16'b0;
     end
     //     $readmemb("Boot.hack", rom);

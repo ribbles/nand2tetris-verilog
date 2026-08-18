@@ -10,20 +10,13 @@ module RAM16K (
   
   reg [15:0] ram [0:16383];
   
-  `ifndef SYNTHESIS
+  `ifdef SIMULATION
+integer i;
   initial begin
-    for (int i = 0; i < 16384; i++) begin
+    for (i = 0; i < 16384; i = i + 1) begin
       ram[i] = 16'b0;
       end
   end
-    
-//   always @(negedge clk) begin
-//     out <= ram[address];
-//     if (load) begin // write
-//       ram[address] <= in;
-//     end
-//   end
-  
   `endif
   always @(negedge clk) begin
     if (load) begin
