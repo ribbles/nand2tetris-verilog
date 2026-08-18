@@ -18,8 +18,6 @@ IVERILOG       ?= $(TOOLBIN)/iverilog.exe
 VVP            ?= $(TOOLBIN)/vvp.exe
 GOWIN_SH       ?= /c/Gowin/Gowin_V1.9.11.03_Education_x64/IDE/bin/gw_sh.exe
 GOWIN_OUTPUT   ?= impl/pnr/nand2tetris.fs
-GOWIN_SH       ?= /c/Gowin/Gowin_V1.9.11.03_Education_x64/IDE/bin/gw_sh.exe
-GOWIN_OUTPUT   ?= impl/pnr/nand2tetris.fs
 
 SYNTH_FLAGS    ?= -noabc9 -nowidelut
 NEXTPNR_FLAGS  ?= --placer heap --seed 7
@@ -48,12 +46,22 @@ top_pnr.json: top.json tangnano9k.cst
 $(BITSTREAM): top_pnr.json
 	$(GOWIN_PACK) -d $(FAMILY) -o $@ $<
 
+Prog.bin: Prog.hack scripts/hack2bin.py
+	python scripts/hack2bin.py $< $@
+
 # Program the persistent flash or the volatile SRAM respectively.
 flash: $(BITSTREAM)
 	$(OPENFPGA) -b $(BOARD) -f $<
 
 sram: $(BITSTREAM)
 	$(OPENFPGA) -b $(BOARD) -m $<
+
+# Program the Hack program into User Flash (FLASH608K) along with the bitstream
+flash_prog: $(BITSTREAM) Prog.bin
+	$(OPENFPGA) -b $(BOARD) -f $< --user-flash Prog.bin
+
+# Alias for flashing bitstream and User Flash together
+flash_all: flash_prog
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -82,9 +90,9 @@ sim_all: sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k si
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -f top.json top_pnr.json $(BITSTREAM) Prog.hack
+	rm -f top.json top_pnr.json $(BITSTREAM) Prog.hack Prog.bin
 
-.PHONY: all verify bitstream gowin_bitstream gowin_build flash sram clean sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer
+.PHONY: all verify bitstream gowin_bitstream gowin_build flash sram flash_prog flash_all clean sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer
 .INTERMEDIATE: top.json top_pnr.json
 # Alternative bitstream flow using the installed Gowin IDE.
 gowin_bitstream: Prog.hack build_gowin.tcl tangnano9k.cst
