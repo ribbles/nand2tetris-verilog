@@ -4,3 +4,4 @@ top.fs
 build
 *.user
 impl
+*.vcd

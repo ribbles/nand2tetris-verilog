@@ -28,6 +28,7 @@ module Computer (
         .pc(pc)
     );
   
+    //hack_rom_flash
   ROM32K rom (
     .address(pc),
     .out(instruction)
