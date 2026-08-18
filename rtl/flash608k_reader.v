@@ -2,7 +2,7 @@ module flash608k_reader (
     input  wire        clk,
     input  wire        reset,
 
-    input  wire [13:0] word_addr,   // 32-bit flash-word address: 0..16383
+    input  wire [13:0] word_addr,   
     input  wire        req,         // request a fetch
     output wire [31:0] data,        // data out
     output wire        valid,       // one clock pulse: data is valid now

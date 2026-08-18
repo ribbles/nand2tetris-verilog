@@ -1,14 +1,13 @@
 `timescale 1ns / 1ps
 
-module tb_flash_reader;
+module tb_rom_flash;
 
-    reg        clk = 0;
-    reg        reset = 0;
-    reg [13:0] word_addr = 14'b0;   // 32-bit flash-word address: 0..16383
-    reg        req = 0;         // request a fetch
-    wire [31:0] data;        // requested Hack instruction
+    reg         clk = 0;
+    reg         reset = 0;
+    reg [14:0]  addr = 13'b0;   // flash-word address: 0..16383
+    reg         req = 0;         // request a fetch
+    wire [15:0] data;        // requested Hack instruction
     wire        valid;       // one clock pulse: data is valid now
-    wire        busy;
 
     integer i;
     wire [31:0] expected;
@@ -16,14 +15,13 @@ module tb_flash_reader;
     
     always #2 clk = ~clk;
 
-    flash608k_reader uut (
+    rom_flash uut (
         .clk(clk),
         .reset(reset),
-        .word_addr(word_addr),
+        .addr(addr),
         .req(req),
         .data(data),
         .valid(valid),
-        .busy(busy)
     );
 
     // Helper task to read and verify any address cleanly
