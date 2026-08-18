@@ -6,7 +6,7 @@ module tb_alu;
     wire [15:0] out;
     wire zr, ng;
 
-    ALU uut (
+    HackALU uut (
         .x(x), .y(y),
         .zx(zx), .nx(nx), .zy(zy), .ny(ny),
         .f(f), .no(no),

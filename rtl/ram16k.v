@@ -10,6 +10,7 @@ module RAM16K (
   
   reg [15:0] ram [0:16383];
   
+  `ifndef SYNTHESIS
   initial begin
     for (int i = 0; i < 16384; i++) begin
       ram[i] = 16'b0;
@@ -23,6 +24,7 @@ module RAM16K (
 //     end
 //   end
   
+  `endif
   always @(negedge clk) begin
     if (load) begin
         ram[address] <= in;

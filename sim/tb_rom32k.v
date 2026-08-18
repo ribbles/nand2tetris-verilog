@@ -37,8 +37,7 @@ module tb_rom32k;
 
         $fclose(file_handle);
         
-        // Give file I/O time to finalize
-        #10;
+        // Load the image after it has been created.\r\n        #10;\r\n        $readmemb("Prog.hack", uut.rom);
 
         // ---------------------------------------------------------------------
         // 2. Run Test Vectors

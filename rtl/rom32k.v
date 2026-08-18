@@ -8,9 +8,6 @@ module ROM32K (
   reg [15:0] rom [0:32767];
   
   initial begin
-    for (int i = 0; i < 32768; i++) begin
-      rom[i] = 16'b0;
-    end
     $readmemb("Prog.hack", rom);
   end
   assign  out = rom[address];

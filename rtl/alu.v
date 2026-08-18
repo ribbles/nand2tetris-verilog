@@ -1,4 +1,4 @@
-module ALU (
+module HackALU (
     input wire [15:0] x,
     input wire [15:0] y,
     input wire zx,

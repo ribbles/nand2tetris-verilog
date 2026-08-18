@@ -22,6 +22,7 @@ module Screen (
   reg [15:0] frame_buffer [0:8191];
   
 
+  `ifndef SYNTHESIS
   initial begin
     for (int i = 0; i < $size(frame_buffer); i++) begin
       frame_buffer[i] = 16'b0;
@@ -29,6 +30,7 @@ module Screen (
     //     $readmemb("Boot.hack", rom);
   end
   
+  `endif
   always @(negedge clk) begin
     if (load) begin
         frame_buffer[address] <= in;

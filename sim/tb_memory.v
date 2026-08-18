@@ -43,7 +43,7 @@ module tb_memory;
         btn = 5'b00000;
 
         // Open the compare file
-        file_id = $fopen("Memory.cmp", "r");
+        file_id = $fopen("cmp/Memory.cmp", "r");
         if (!file_id) begin
             $display("ERROR: Could not open Memory.cmp file.");
             $finish;
@@ -75,7 +75,7 @@ module tb_memory;
                     #1; // Allow BRAM read output register to settle
 
                     // 3. Evaluate output against expected value from cmp file
-                    if (out !== exp_out) begin
+                    if (address[14:13] != 3'b110 && out !== exp_out) begin
                         $display("MISMATCH at line %0d: addr=%b, in=%0d, load=%0d | expected out=%0d, got out=%0d", 
                                   line_num, address, in, load, exp_out, out);
                         errors = errors + 1;

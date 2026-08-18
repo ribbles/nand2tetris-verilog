@@ -1,6 +1,6 @@
 set_device GW1NR-LV9QN88PC6/I5 -device_version C
 
-add_folder rtl
+add_folder rtlcd
 add_file tangnano9k.cst
 
 set_option -top_module top

@@ -9,7 +9,7 @@ module Memory (
     input  wire        load,     // Write-enable flag (1 = write, 0 = read only)
     input  wire [14:0] address,  // 15-bit address from the CPU
   input  wire [4:0] btn,
-    output reg  [15:0] out       // 16-bit data output to the CPU
+    output wire [15:0] out       // 16-bit data output to the CPU
 );
 
   wire is_ram = address[14] == 1'b0;
@@ -28,7 +28,7 @@ module Memory (
   Keyboard kbd(btn, kbd_out);
   
   assign out = is_ram ? ram_out :
-    		   is_scr ? scr_out :
+               is_scr ? scr_out :
     		   is_kbd ? kbd_out : out;
   
 

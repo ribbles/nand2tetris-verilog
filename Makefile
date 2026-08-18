@@ -1,68 +1,89 @@
-BOARD=tangnano9k
-FAMILY=GW1N-9C
-DEVICE=GW1NR-LV9QN88PC6/I5
-TOP=top
-SYNTH_FLAGS ?= -noabc9 -nowidelut
-NEXTPNR_FLAGS ?= --placer heap --seed 7
-SERIAL_PORT ?= COM9
-BAUDRATE ?= 115200
-NONCE_CHUNK_SIZE ?= 524288
-JOB_TTL_SEC ?= 20
-LOG_INTERVAL_SEC ?= 5
-STOP_ON_FOUND ?= true
-GENESIS_JOB_ID ?= 1
-PROBE_TIMEOUT ?= 5.0
-TOOLBIN := /c/Users/wolfpack/Downloads/tang_nano_9k/oss-cad-suite/bin
-TOOLLIB := /c/Users/wolfpack/Downloads/tang_nano_9k/oss-cad-suite/lib
+# Tang Nano 9K / nand2tetris Hack computer build and test targets.
+# Run these from Git Bash on Windows: make sim_all, make bitstream, make sram.
+
+BOARD          ?= tangnano9k
+FAMILY         ?= GW1N-9C
+DEVICE         ?= GW1NR-LV9QN88PC6/I5
+TOP            ?= top
+TOOLBIN        ?= /c/Users/wolfpack/Downloads/tang_nano_9k/oss-cad-suite/bin
+TOOLLIB        ?= /c/Users/wolfpack/Downloads/tang_nano_9k/oss-cad-suite/lib
 
 export PATH := $(TOOLBIN):$(TOOLLIB):$(PATH)
 
-YOSYS := $(TOOLBIN)/yosys.exe
-NEXTPNR := $(TOOLBIN)/nextpnr-himbaechel.exe
-GOWIN_PACK := $(TOOLBIN)/gowin_pack.exe
-OPENFPGA := $(TOOLBIN)/openFPGALoader.exe
-IVERILOG := $(TOOLBIN)/iverilog.exe
-VVP := $(TOOLBIN)/vvp.exe
-BITSTREAM ?= top.fs
-GOWIN_BUILD_SCRIPT ?= build_gowin.tcl
-GOWIN_SH ?= /c/Gowin/Gowin_V1.9.11.03_Education_x64/IDE/bin/gw_sh.exe
-MINER_CE_DIVISOR ?= 2
+YOSYS          ?= $(TOOLBIN)/yosys.exe
+NEXTPNR        ?= $(TOOLBIN)/nextpnr-himbaechel.exe
+GOWIN_PACK     ?= $(TOOLBIN)/gowin_pack.exe
+OPENFPGA       ?= $(TOOLBIN)/openFPGALoader.exe
+IVERILOG       ?= $(TOOLBIN)/iverilog.exe
+VVP            ?= $(TOOLBIN)/vvp.exe
+GOWIN_SH       ?= /c/Gowin/Gowin_V1.9.11.03_Education_x64/IDE/bin/gw_sh.exe
+GOWIN_OUTPUT   ?= impl/pnr/nand2tetris.fs
+GOWIN_SH       ?= /c/Gowin/Gowin_V1.9.11.03_Education_x64/IDE/bin/gw_sh.exe
+GOWIN_OUTPUT   ?= impl/pnr/nand2tetris.fs
 
-RTL=$(wildcard rtl/*.v)
+SYNTH_FLAGS    ?= -noabc9 -nowidelut
+NEXTPNR_FLAGS  ?= --placer heap --seed 7
+BITSTREAM      ?= top.fs
+BUILD_DIR      ?= build
+PROGRAM        ?= sim/hack/Rect.hack
+RTL            := $(wildcard rtl/*.v)
 
-all: verify $(BITSTREAM)
+.DEFAULT_GOAL := all
 
-verify: sim_all 
+all: verify bitstream
 
-top.json: $(RTL)
-	$(YOSYS) -p "read_verilog $(RTL); synth_gowin $(SYNTH_FLAGS) -top $(TOP) -json top.json"
+verify: sim_all
+
+bitstream: $(BITSTREAM)
+
+Prog.hack: $(PROGRAM)
+	@cp $< $@
+
+top.json: $(RTL) Prog.hack
+	$(YOSYS) -p "read_verilog -sv -D SYNTHESIS $(RTL); synth_gowin $(SYNTH_FLAGS) -top $(TOP) -json $@"
 
 top_pnr.json: top.json tangnano9k.cst
-	$(NEXTPNR) --json top.json --write top_pnr.json --device $(DEVICE) --vopt family=$(FAMILY) --vopt cst=tangnano9k.cst $(NEXTPNR_FLAGS)
+	$(NEXTPNR) --json $< --write $@ --device $(DEVICE) --vopt family=$(FAMILY) --vopt cst=tangnano9k.cst $(NEXTPNR_FLAGS)
 
-top.fs: top_pnr.json
-	$(GOWIN_PACK) -d $(FAMILY) -o top.fs top_pnr.json
+$(BITSTREAM): top_pnr.json
+	$(GOWIN_PACK) -d $(FAMILY) -o $@ $<
 
-gowin_build:
-	"$(GOWIN_SH)" $(GOWIN_BUILD_SCRIPT)
-	rm -f top.fs
-	cp impl/pnr/bitcoin-miner-gowin-slow.fs top.fs
-
+# Program the persistent flash or the volatile SRAM respectively.
 flash: $(BITSTREAM)
-	$(OPENFPGA) -b $(BOARD) $(BITSTREAM) -f
+	$(OPENFPGA) -b $(BOARD) -f $<
 
 sram: $(BITSTREAM)
-	$(OPENFPGA) -b $(BOARD) -m $(BITSTREAM)
+	$(OPENFPGA) -b $(BOARD) -m $<
 
-sim_nonce: rtl/hash256d_pipeline.v rtl/nonce_scanner.v sim/tb_nonce_scanner.v
-	$(IVERILOG) -g2012 -o sim/tb_nonce_scanner.out rtl/hash256d_pipeline.v rtl/nonce_scanner.v sim/tb_nonce_scanner.v
-	$(VVP) sim/tb_nonce_scanner.out
+$(BUILD_DIR):
+	mkdir -p $@
 
+define SIM_RULE
+sim_$(1): | $(BUILD_DIR)
+	cd sim && $(IVERILOG) -g2012 -s tb_$(1) -o ../$(BUILD_DIR)/tb_$(1).out $(2) tb_$(1).v
+	cd sim && $(VVP) ../$(BUILD_DIR)/tb_$(1).out
+endef
 
-sim_all: sim_nonce
+$(eval $(call SIM_RULE,alu,../rtl/alu.v))
+$(eval $(call SIM_RULE,cpu,../rtl/alu.v ../rtl/pc.v ../rtl/cpu.v))
+$(eval $(call SIM_RULE,keyboard,../rtl/keyboard.v))
+$(eval $(call SIM_RULE,memory,../rtl/ram16k.v ../rtl/screen.v ../rtl/keyboard.v ../rtl/memory.v))
+$(eval $(call SIM_RULE,pc,../rtl/pc.v))
+$(eval $(call SIM_RULE,ram16k,../rtl/ram16k.v))
+$(eval $(call SIM_RULE,rom32k,../rtl/rom32k.v))
+$(eval $(call SIM_RULE,screen,../rtl/screen.v))
+
+sim_all: sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen
 
 clean:
-	rm -f top.json top_pnr.json top.fs sim/*.out
+	rm -rf $(BUILD_DIR)
+	rm -f top.json top_pnr.json $(BITSTREAM) Prog.hack
 
-.PHONY: all verify flash sram clean sim_nonce sim_multi sim_hash sim_found_match sim_genesis_found sim_uart_rx sim_uart_tx sim_uart_link sim_uart_top_ack sim_uart_top_genesis sim_all host_test host_regress pool_smoke fpga_smoke ping fpga_mine_easy_block fpga_genesis fpga_debug serial_ports run run_stub gowin_build
+.PHONY: all verify bitstream gowin_bitstream gowin_build flash sram clean sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen
 .INTERMEDIATE: top.json top_pnr.json
+# Alternative bitstream flow using the installed Gowin IDE.
+gowin_bitstream: Prog.hack build_gowin.tcl tangnano9k.cst
+	"$(GOWIN_SH)" build_gowin.tcl
+	cp "$(GOWIN_OUTPUT)" "$(BITSTREAM)"
+
+gowin_build: gowin_bitstream
