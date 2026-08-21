@@ -20,8 +20,8 @@ integer i;
   `endif
   always @(negedge clk) begin
     if (load) begin
+        out <= ram[address]; // Hack memory returns the previously stored word during the write cycle.
         ram[address] <= in;
-        out <= in;          // Drive new write value directly to output
     end else begin
         out <= ram[address]; // Normal read
     end

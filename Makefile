@@ -25,6 +25,7 @@ BITSTREAM      ?= top.fs
 BUILD_DIR      ?= build
 PROGRAM        ?= sim/hack/Pong.hack
 RTL            := $(wildcard rtl/*.v)
+SIM_FRAMES_DIR ?= sim/frames
 
 .DEFAULT_GOAL := all
 
@@ -66,6 +67,9 @@ flash_all: flash_prog
 $(BUILD_DIR):
 	mkdir -p $@
 
+$(SIM_FRAMES_DIR):
+	mkdir -p $@
+
 define SIM_RULE
 sim_$(1): | $(BUILD_DIR)
 	cd sim && $(IVERILOG) -g2012 -DSIMULATION -s tb_$(1) -o ../$(BUILD_DIR)/tb_$(1).out $(2) tb_$(1).v
@@ -80,19 +84,26 @@ $(eval $(call SIM_RULE,pc,../rtl/pc.v))
 $(eval $(call SIM_RULE,ram16k,../rtl/ram16k.v))
 $(eval $(call SIM_RULE,rom32k,../rtl/rom32k.v))
 $(eval $(call SIM_RULE,screen,../rtl/screen.v))
+$(eval $(call SIM_RULE,tb_top_hdmi,../rtl/hdmi_monochrome_display.v))
 $(eval $(call SIM_RULE,flash_model,flash608k_model.v))
 $(eval $(call SIM_RULE,flash_primative,flash608k_model.v ../rtl/flash608k_primitive.v))
 $(eval $(call SIM_RULE,flash_reader,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v))
 $(eval $(call SIM_RULE,rom_flash,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v ../rtl/rom_flash.v))
 $(eval $(call SIM_RULE,computer,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v ../rtl/rom_flash.v ../rtl/alu.v ../rtl/pc.v ../rtl/cpu.v ../rtl/ram16k.v ../rtl/screen.v ../rtl/keyboard.v ../rtl/memory.v ../rtl/fetch_fsm.v ../rtl/computer.v))
+$(eval $(call SIM_RULE,computer_screen,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v ../rtl/rom_flash.v ../rtl/alu.v ../rtl/pc.v ../rtl/cpu.v ../rtl/ram16k.v ../rtl/screen.v ../rtl/keyboard.v ../rtl/memory.v ../rtl/fetch_fsm.v))
 
-sim_all: sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer
+movie:
+	rm -f $(SIM_FRAMES_DIR)/frame_*.pbm sim/pong_movie.gif
+	$(MAKE) sim_computer_screen
+	python scripts/make_movie.py --frames-dir $(SIM_FRAMES_DIR) --output sim/pong_movie.gif
+
+sim_all: sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer sim_computer_screen sim_top_hdmi
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) $(SIM_FRAMES_DIR) sim/pong_movie.gif
 	rm -f top.json top_pnr.json $(BITSTREAM) Prog.hack Prog.bin
 
-.PHONY: all verify bitstream gowin_bitstream gowin_build flash sram flash_prog flash_all clean sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer
+.PHONY: all verify bitstream gowin_bitstream gowin_build flash sram flash_prog flash_all clean movie sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer sim_computer_screen sim_top_hdmi
 .INTERMEDIATE: top.json top_pnr.json
 # Alternative bitstream flow using the installed Gowin IDE.
 gowin_bitstream: Prog.hack build_gowin.tcl tangnano9k.cst

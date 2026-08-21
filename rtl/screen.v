@@ -13,8 +13,8 @@ module Screen (
     // =======================================================
     // Port B: Display Driver Interface (Read-Only)
     // =======================================================
-    input  wire [12:0] read_addr,  // Address requested by SPI driver
-    output reg  [15:0] read_data   // 16-bit word output to SPI driver
+    input  wire [13:0] read_addr,  // Address requested by HDMI driver
+    output reg  [7:0] read_data   // 8-bit word output to HDMI driver
 );
   
   // 512x256=131072
@@ -35,8 +35,8 @@ integer i;
   `endif
   always @(negedge clk) begin
     if (load) begin
+        out <= frame_buffer[address]; // Preserve old-word read semantics during writes.
         frame_buffer[address] <= in;
-        out <= in;          // Drive new write value directly to output
     end else begin
         out <= frame_buffer[address]; // Normal read
     end
@@ -44,7 +44,8 @@ integer i;
   
   // Port B Read-Only Logic (Synchronous)
     always @(posedge clk) begin
-        read_data <= frame_buffer[read_addr];
+      // 16-bit address lookup splits to high or low end of 16-bit word and selects 8 bits
+        read_data <= frame_buffer[read_addr[13:1]][read_addr[0]*8 +:8];
     end
   
 endmodule
