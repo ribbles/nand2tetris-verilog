@@ -7,7 +7,9 @@ module Computer (
     input  wire       clk,
     input  wire       reset,
     input  wire [4:0] btn,
-    output wire [5:0] debug
+    output wire [5:0] debug,
+    output wire        O_tmds_clk_p,
+    output wire [2:0]  O_tmds_data_p
 );
 
     wire [15:0] instruction;
@@ -21,6 +23,9 @@ module Computer (
     wire        rom_valid;
     wire        rom_req;
     wire        cpu_enable;
+
+    wire [13:0] hdmi_read_addr;
+    wire [7:0]  hdmi_read_data;
 
     fetch_fsm fsm (
         .clk(clk),
@@ -59,7 +64,17 @@ module Computer (
         .in(outM),
         .load(writeM),
         .out(inM),
-        .btn(btn)
+        .btn(btn),
+        .hdmi_read_addr(hdmi_read_addr),
+        .hdmi_read_data(hdmi_read_data)
+    );
+
+    HDMI hdmi (
+        .sys_clk_27m(clk),
+        .O_tmds_clk_p(O_tmds_clk_p),
+        .O_tmds_data_p(O_tmds_data_p),
+        .hdmi_read_addr(hdmi_read_addr),
+        .hdmi_read_data(hdmi_read_data)
     );
 
     assign debug = pc[5:0];

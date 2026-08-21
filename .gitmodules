@@ -1,0 +1,3 @@
+[submodule "submodules/hdmi"]
+	path = submodules/hdmi
+	url = https://github.com/sipeed/TangNano-9K-example.git

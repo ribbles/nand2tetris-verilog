@@ -33,3 +33,16 @@ IO_PORT "btn_left" IO_TYPE=LVCMOS18 PULL_MODE=UP;
 
 IO_LOC  "btn_up" 30;
 IO_PORT "btn_up" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+
+// Physical HDMI / DVI Serial Line Map
+IO_LOC "O_tmds_clk_p" 69,68;
+IO_PORT "O_tmds_clk_p" IO_TYPE=ELVDS PULL_MODE=NONE DRIVE=8;
+
+IO_LOC "O_tmds_data_p[0]" 71,70;
+IO_PORT "O_tmds_data_p[0]" IO_TYPE=ELVDS PULL_MODE=NONE DRIVE=8;
+
+IO_LOC "O_tmds_data_p[1]" 73,72;
+IO_PORT "O_tmds_data_p[1]" IO_TYPE=ELVDS PULL_MODE=NONE DRIVE=8;
+
+IO_LOC "O_tmds_data_p[2]" 75,74;
+IO_PORT "O_tmds_data_p[2]" IO_TYPE=ELVDS PULL_MODE=NONE DRIVE=8;
