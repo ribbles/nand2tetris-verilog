@@ -15,14 +15,14 @@ module tb_play_pong;
     reg reset = 0;
     reg [4:0] btn = 5'b11111; // Active-low buttons (5'b11111 = all released/idle)
     wire [15:0] instruction;
+    wire [15:0] rom_data;
+    wire        rom_valid;
+    wire        rom_req;
     wire [15:0] inM;
     wire [15:0] outM;
     wire        writeM;
     wire [14:0] addressM;
     wire [14:0] pc;
-    wire [15:0] rom_data;
-    wire        rom_valid;
-    wire        rom_req;
     wire        cpu_enable;
 
     // Frame capture configuration (default: 1 simulated second at 27 MHz)
@@ -90,6 +90,7 @@ module tb_play_pong;
             if (fd == 0) begin
                 $display("[ERROR] Could not open '%s' for writing.", filename);
             end else begin
+                        $display("[DUMP] Writing frame %0d to '%s'", f_idx, filename);
                         // Use Netpbm P4 (binary) for faster frame output: header then packed bytes.
                         $fwrite(fd, "P4\n512 256\n");
 
@@ -101,21 +102,25 @@ module tb_play_pong;
                                 for (b = 0; b < 16; b = b + 1) begin
                                     if (word_val[b] == 1'b1) act_pix = act_pix + 1;
                                 end
-                                // Emit two bytes for the 16-bit word (MSB then LSB).
-                                $fwrite(fd, "%c", word_val[15:8]);
-                                $fwrite(fd, "%c", word_val[7:0]);
+                                // Hack bit 0 is the leftmost pixel; PBM emits each byte MSB first.
+                                $fwrite(fd, "%c", {word_val[8], word_val[9], word_val[10], word_val[11],
+                                                    word_val[12], word_val[13], word_val[14], word_val[15]});
+                                $fwrite(fd, "%c", {word_val[0], word_val[1], word_val[2], word_val[3],
+                                                    word_val[4], word_val[5], word_val[6], word_val[7]});
                             end
                         end
                 $fclose(fd);
+                $display("[DUMP] Closed '%s'", filename);
             end
         end
     endtask
 
     integer cycle_count;
-
+    integer next_progress_cycle;
     initial begin
         integer i;
         cycle_count = 0;
+        next_progress_cycle = 1000000;
 
         $display("=========================================================");
         $display("   HACK COMPUTER SCREEN SIMULATION & MOVIE CAPTURE       ");
@@ -136,14 +141,36 @@ module tb_play_pong;
         @(negedge clk);
         reset = 0;
         $display("[INFO] Reset released. Starting CPU execution at 27 MHz...");
+        // Allow overriding capture parameters via +plusargs on the VVP command line.
+        if ($value$plusargs("cycles_per_frame=%d", cycles_per_frame)) begin
+            $display("[INFO] Overriding cycles_per_frame -> %0d (from plusarg)", cycles_per_frame);
+        end
+        if ($value$plusargs("total_frames=%d", total_frames)) begin
+            $display("[INFO] Overriding total_frames -> %0d (from plusarg)", total_frames);
+        end
+        if (cycles_per_frame <= 0 || total_frames <= 0) begin
+            $fatal(1, "cycles_per_frame and total_frames must both be positive");
+        end
         $display("[INFO] Capture plan: interval_cycles=%0d frames=%0d", cycles_per_frame, total_frames);
-        
-         while (frame_count < total_frames) begin
-            if (cycle_count >= 27000000) begin
-                dump_screen_pbm(frame_count, active_pixels);
-                frame_count = frame_count + 1;
-                $display("[FRAME %02d] Time=%0t | Active pixels=%0d", frame_count, $time, active_pixels);
-                cycle_count = 0;
+
+        while (frame_count < total_frames) begin
+            // Wait one clock cycle to allow simulation time to advance
+            @(posedge clk);
+            cycle_count = cycle_count + 1;
+            // Avoid a modulo operation on every simulated cycle; it is unexpectedly
+            // expensive in VVP for a long Pong capture.
+            if (cycle_count == next_progress_cycle) begin
+                $display("[PROGRESS] Frame=%0d cycle_count=%0d time=%0t", frame_count, cycle_count, $time);
+                next_progress_cycle = next_progress_cycle + 1000000;
+            end
+            // Use configured cycles_per_frame variable
+            if (cycle_count >= cycles_per_frame) begin
+                 $display("[DUMP_TRIG] cycle_count=%0d frame_count=%0d time=%0t", cycle_count, frame_count, $time);
+                 dump_screen_pbm(frame_count, active_pixels);
+                 frame_count = frame_count + 1;
+                 $display("[FRAME %02d] Time=%0t | Active pixels=%0d", frame_count, $time, active_pixels);
+                 cycle_count = 0;
+                 next_progress_cycle = 1000000;
             end
         end
 

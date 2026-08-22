@@ -47,22 +47,22 @@ top_pnr.json: top.json tangnano9k.cst
 $(BITSTREAM): top_pnr.json
 	$(GOWIN_PACK) -d $(FAMILY) -o $@ $<
 
+# Alternative bitstream flow using the installed Gowin IDE.
+gowin_bitstream: Prog.hack build_gowin.tcl tangnano9k.cst
+	"$(GOWIN_SH)" build_gowin.tcl
+	cp "$(GOWIN_OUTPUT)" "$(BITSTREAM)"
+
 Prog.bin: Prog.hack scripts/hack2bin.py
 	python scripts/hack2bin.py $< $@
 
-# Program the persistent flash or the volatile SRAM respectively.
 flash: $(BITSTREAM)
 	$(OPENFPGA) -b $(BOARD) -f $<
 
 sram: $(BITSTREAM)
 	$(OPENFPGA) -b $(BOARD) -m $<
 
-# Program the Hack program into User Flash (FLASH608K) along with the bitstream
-flash_prog: $(BITSTREAM) Prog.bin
+flash_all: $(BITSTREAM) Prog.bin
 	$(OPENFPGA) -b $(BOARD) -f $< --user-flash Prog.bin
-
-# Alias for flashing bitstream and User Flash together
-flash_all: flash_prog
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -89,16 +89,12 @@ $(eval $(call SIM_RULE,flash_primative,flash608k_model.v ../rtl/flash608k_primit
 $(eval $(call SIM_RULE,flash_reader,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v))
 $(eval $(call SIM_RULE,rom_flash,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v ../rtl/rom_flash.v))
 $(eval $(call SIM_RULE,computer,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v ../rtl/rom_flash.v ../rtl/alu.v ../rtl/pc.v ../rtl/cpu.v ../rtl/ram16k.v ../rtl/screen.v ../rtl/keyboard.v ../rtl/memory.v ../rtl/fetch_fsm.v ../rtl/hdmi.v ../sim/hdmi_stubs.v ../rtl/computer.v))
-$(eval $(call SIM_RULE,play_pong,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v ../rtl/rom_flash.v ../rtl/alu.v ../rtl/pc.v ../rtl/cpu.v ../rtl/ram16k.v ../rtl/screen.v ../rtl/keyboard.v ../rtl/memory.v ../rtl/fetch_fsm.v))
+$(eval $(call SIM_RULE,play_pong,flash608k_model.v ../rtl/flash608k_primitive.v ../rtl/flash608k_reader.v ../rtl/rom_flash.v ../rtl/alu.v ../rtl/pc.v ../rtl/cpu.v ../rtl/ram16k.v ../rtl/screen.v ../rtl/keyboard.v ../rtl/memory.v ../rtl/fetch_fsm.v ../rtl/hdmi.v ../sim/hdmi_stubs.v ../rtl/computer.v))
 
-movie:
+movie: | $(BUILD_DIR) $(SIM_FRAMES_DIR)
 	rm -f $(SIM_FRAMES_DIR)/frame_*.pbm sim/pong_movie.gif
-	# Compile simulator
 	$(MAKE) sim_play_pong
-	# Run simulator with fast defaults to produce frames quickly
-	cd sim && $(VVP) ../$(BUILD_DIR)/tb_play_pong.out
-	# Build GIF from frames
-	python scripts/make_movie.py --frames-dir $(SIM_FRAMES_DIR) --output sim/pong_movie.gif --delay 200
+	python scripts/make_movie.py --frames-dir $(SIM_FRAMES_DIR) --output sim/pong_movie.gif
 
 sim_all: sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer
 
@@ -106,11 +102,5 @@ clean:
 	rm -rf $(BUILD_DIR) $(SIM_FRAMES_DIR) sim/pong_movie.gif
 	rm -f top.json top_pnr.json $(BITSTREAM) Prog.hack Prog.bin
 
-.PHONY: all verify bitstream gowin_bitstream gowin_build flash sram flash_prog flash_all clean movie sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer sim_play_pong sim_computer_compile
+.PHONY: all verify bitstream gowin_bitstream flash sram flash_all clean movie sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer sim_play_pong sim_computer_compile
 .INTERMEDIATE: top.json top_pnr.json
-# Alternative bitstream flow using the installed Gowin IDE.
-gowin_bitstream: Prog.hack build_gowin.tcl tangnano9k.cst
-	"$(GOWIN_SH)" build_gowin.tcl
-	cp "$(GOWIN_OUTPUT)" "$(BITSTREAM)"
-
-gowin_build: gowin_bitstream
