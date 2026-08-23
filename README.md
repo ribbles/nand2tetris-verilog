@@ -103,7 +103,7 @@ make flash
 
 ## FPGA Wiring
 
-![Pong Running on Hardware](docs/pong_fpga.gif
+![Pong Running on Hardware](docs/pong_fpga.gif)
 
 ## Debug LEDs
 
