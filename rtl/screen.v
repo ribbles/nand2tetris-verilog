@@ -14,38 +14,49 @@ module Screen (
     // Port B: Display Driver Interface (Read-Only)
     // =======================================================
     input  wire [13:0] read_addr,  // Address requested by HDMI driver
-    output reg  [7:0] read_data   // 8-bit word output to HDMI driver
+    output wire [7:0] read_data   // 8-bit word output to HDMI driver
 );
-  
-  // 512x256=131072
-  // or 8192x16bit words
-  reg [15:0] frame_buffer [0:8191];
-  
 
-  `ifdef SIMULATION
-integer i;
+    // Two 8-bit true-dual-port RAMs implement the Hack's 8K x 16 Screen.
+    // Equal-width ports allow Gowin to infer BSRAM rather than flip-flops.
+    reg [7:0] frame_buffer_lo [0:8191];
+    reg [7:0] frame_buffer_hi [0:8191];
 
-  initial begin
-    for (i = 0; i < 8192; i = i + 1) begin
-      frame_buffer[i] = 16'b0;
+    `ifdef SIMULATION
+    integer i;
+    
+    initial begin
+        out = 16'h0000;
+        for (i = 0; i < 8192; i = i + 1) begin
+            frame_buffer_lo[i] = 8'h00;
+            frame_buffer_hi[i] = 8'h00;
+        end
     end
-    //     $readmemb("Boot.hack", rom);
-  end
-  
-  `endif
-  always @(negedge clk) begin
-    if (load) begin
-        out <= frame_buffer[address]; // Preserve old-word read semantics during writes.
-        frame_buffer[address] <= in;
-    end else begin
-        out <= frame_buffer[address]; // Normal read
-    end
-  end
-  
-  // Port B Read-Only Logic (Synchronous)
+    `endif
+
+    // Port A: Hack CPU, one 16-bit word per address.
     always @(posedge clk) begin
-      // 16-bit address lookup splits to high or low end of 16-bit word and selects 8 bits
-        read_data <= frame_buffer[read_addr[13:1]][read_addr[0]*8 +:8];
+        if (load) begin
+            frame_buffer_lo[address] <= in[7:0];
+            frame_buffer_hi[address] <= in[15:8];
+            // Hold the CPU read output while writing; this is the mode the
+            // Gowin dual-port BSRAM supports for this mixed-width layout.
+        end else begin
+            out <= {frame_buffer_hi[address], frame_buffer_lo[address]};
+        end
     end
-  
+
+    // Port B: HDMI, one byte per address.
+    reg [7:0] hdmi_read_lo;
+    reg [7:0] hdmi_read_hi;
+    reg hdmi_byte_select;
+
+    always @(posedge clk) begin
+        hdmi_read_lo <= frame_buffer_lo[read_addr[13:1]];
+        hdmi_read_hi <= frame_buffer_hi[read_addr[13:1]];
+        hdmi_byte_select <= read_addr[0];
+    end
+
+    assign read_data = hdmi_byte_select ? hdmi_read_hi : hdmi_read_lo;
+
 endmodule

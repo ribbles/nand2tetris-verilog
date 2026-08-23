@@ -1,15 +1,14 @@
 // `timescale 1ns / 1ps
-// `include "CPU"
-// `include "rom32k"
-// `include "memory"
 
 module Computer (
     input  wire       clk,
     input  wire       reset,
     input  wire [4:0] btn,
     output wire [5:0] debug,
-    output wire        O_tmds_clk_p,
-    output wire [2:0]  O_tmds_data_p
+    output wire       O_tmds_clk_p,
+    output wire       O_tmds_clk_n,
+    output wire [2:0] O_tmds_data_p,
+    output wire [2:0] O_tmds_data_n
 );
 
     wire [15:0] instruction;
@@ -69,12 +68,14 @@ module Computer (
         .hdmi_read_data(hdmi_read_data)
     );
 
-    HDMI hdmi (
-        .sys_clk_27m(clk),
-        .O_tmds_clk_p(O_tmds_clk_p),
-        .O_tmds_data_p(O_tmds_data_p),
+    hdmi hdmi (
+        .clk(clk),
         .hdmi_read_addr(hdmi_read_addr),
-        .hdmi_read_data(hdmi_read_data)
+        .hdmi_read_data(hdmi_read_data),
+        .O_tmds_clk_p(O_tmds_clk_p),
+        .O_tmds_clk_n(O_tmds_clk_n),
+        .O_tmds_data_p(O_tmds_data_p),
+        .O_tmds_data_n(O_tmds_data_n)
     );
 
     assign debug = pc[5:0];

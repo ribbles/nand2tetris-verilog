@@ -11,6 +11,8 @@ module tb_memory;
 
     // Outputs
     wire [15:0] out;
+    wire [7:0] hdmi_read_data;
+    reg [13:0] hdmi_read_addr = 0;
 
     // Instantiate the Unit Under Test (UUT)
     Memory uut (
@@ -18,18 +20,11 @@ module tb_memory;
         .in(in), 
         .load(load), 
         .address(address), 
-        .out(out),
-        .btn(btn)
+        .out(out), .btn(btn),
+        .hdmi_read_addr(hdmi_read_addr), .hdmi_read_data(hdmi_read_data)
     );
 
-    // File I/O variables
-    integer file_id, scan_count;
-    reg [800:0] line;        // Buffer to read full string line
-    reg [15:0]  exp_out;     // Expected output parsed from cmp file
-    
     integer errors = 0;
-    integer line_num = 0;
-    integer test_count = 0;  // Track total executed comparisons
 
     // Clock generation (10ns period)
     always #5 clk = ~clk;
@@ -40,65 +35,39 @@ module tb_memory;
         in = 0;
         load = 0;
         address = 0;
-        btn = 5'b00000;
+        btn = 5'b11111;
 
-        // Open the compare file
-        file_id = $fopen("cmp/Memory.cmp", "r");
-        if (!file_id) begin
-            $display("ERROR: Could not open Memory.cmp file.");
-            $finish;
-        end
+        // Both memories are synchronous, read-old-data memories. RAM16K uses
+        // the falling clock edge; Screen uses the rising edge for BRAM inference.
+        // The old Nand2Tetris .cmp fixture assumes asynchronous RAM.
+        @(posedge clk); address = 15'h0001; in = 16'h1234; load = 1;
+        @(negedge clk); #1; check(16'h0000, "RAM write returns previous data");
+        @(posedge clk); load = 0;
+        @(negedge clk); #1; check(16'h1234, "RAM readback");
 
-        // Wait for global reset / clock setup
-        #10;
+        @(negedge clk); address = 15'h4002; in = 16'hbeef; load = 1;
+        @(posedge clk); #1; check(16'h0000, "Screen write returns previous data");
+        @(negedge clk); load = 0;
+        @(posedge clk); #1; check(16'hbeef, "Screen readback");
 
-        // Read file line by line
-        while (!$feof(file_id)) begin
-            scan_count = $fgets(line, file_id);
-            line_num = line_num + 1;
+        @(negedge clk); address = 15'h6000; btn = 5'b11110;
+        #1; check(16'd32, "Keyboard mapping");
+        @(negedge clk); address = 15'h7000; btn = 5'b11111;
+        #1; check(16'h0000, "Unmapped address");
 
-            // Skip line 1 (header row)
-            if (line_num > 1) begin
-                
-                // Parse 4 columns: | in (%d) | load (%d) | address (%b) | out (%d) |
-                scan_count = $sscanf(line, "| %d | %d | %b | %d |", in, load, address, exp_out);
-
-                if (scan_count == 4) begin
-                    test_count = test_count + 1;
-
-                    // 1. Drive CPU address/data on posedge clk
-                    @(posedge clk);
-                    #1; // Allow inputs to settle on Memory input pins
-
-                    // 2. Wait for negedge clk where BRAM latches address & registers 'out'
-                    @(negedge clk);
-                    #1; // Allow BRAM read output register to settle
-
-                    // 3. Evaluate output against expected value from cmp file
-                    if (address[14:13] != 3'b110 && out !== exp_out) begin
-                        $display("MISMATCH at line %0d: addr=%b, in=%0d, load=%0d | expected out=%0d, got out=%0d", 
-                                  line_num, address, in, load, exp_out, out);
-                        errors = errors + 1;
-                    end
-                end
-            end
-        end
-
-        $fclose(file_id);
-        
-        $display("----------------------------------------");
-        $display("Execution finished. Tested %0d vectors.", test_count);
-        
-        if (test_count == 0) begin
-            $display("WARNING: 0 test vectors executed. Check Memory.cmp filename and format.");
-        end else if (errors == 0) begin
-            $display("TEST PASSED! All %0d vectors matched.", test_count);
-        end else begin
-            $display("TEST FAILED with %0d errors out of %0d tests.", errors, test_count);
-        end
-        $display("----------------------------------------");
-            
+        if (errors != 0) $fatal(1, "Memory test failed with %0d errors", errors);
+        $display("Memory test passed.");
         $finish;
     end
+
+    task check(input [15:0] expected, input [8*48:1] label);
+        begin
+            if (out !== expected) begin
+                $display("FAIL: %0s: got %h, expected %h", label, out, expected);
+                errors = errors + 1;
+            end else
+                $display("PASS: %0s", label);
+        end
+    endtask
 
 endmodule

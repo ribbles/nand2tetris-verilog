@@ -26,8 +26,8 @@ module tb_play_pong;
     wire        cpu_enable;
 
     // Frame capture configuration (default: 1 simulated second at 27 MHz)
-    integer cycles_per_frame = 27000000;
-    integer total_frames = 10; // default capture duration: 10 seconds
+    integer cycles_per_frame = 27000000 / 5;
+    integer total_frames = 100; // default capture duration: 10 seconds
     integer frame_count = 0;
     integer active_pixels = 0;
     integer fd;
@@ -99,14 +99,15 @@ module tb_play_pong;
                             for (w = 0; w < 32; w = w + 1) begin
                                 word_val = mem.scr.frame_buffer[r * 32 + w];
                                 // Count active bits in this word.
-                                for (b = 0; b < 16; b = b + 1) begin
-                                    if (word_val[b] == 1'b1) act_pix = act_pix + 1;
-                                end
+                                act_pix += $countones(word_val);
+                                // for (b = 0; b < 16; b = b + 1) begin
+                                //     if (word_val[b] == 1'b1) act_pix = act_pix + 1;
+                                // end
                                 // Hack bit 0 is the leftmost pixel; PBM emits each byte MSB first.
-                                $fwrite(fd, "%c", {word_val[8], word_val[9], word_val[10], word_val[11],
-                                                    word_val[12], word_val[13], word_val[14], word_val[15]});
                                 $fwrite(fd, "%c", {word_val[0], word_val[1], word_val[2], word_val[3],
                                                     word_val[4], word_val[5], word_val[6], word_val[7]});
+                                $fwrite(fd, "%c", {word_val[8], word_val[9], word_val[10], word_val[11],
+                                                    word_val[12], word_val[13], word_val[14], word_val[15]});
                             end
                         end
                 $fclose(fd);

@@ -18,7 +18,7 @@ initial begin
     reg exp_zr, exp_ng;
     reg [8*256:1] line; // Fixed: Use a reg vector for string buffer
 
-    file = $fopen("cmp/ALU.cmp", "r");
+    file = $fopen("sim/cmp/ALU.cmp", "r");
     if (file == 0) begin
         $display("Could not open ALU.cmp");
         $finish; // Fixed: Avoids simulator-specific $fatal syntax

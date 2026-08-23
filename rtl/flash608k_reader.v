@@ -21,7 +21,8 @@ module flash608k_reader (
         .erase(1'b0),
         .nvstr(1'b0),
         .xadr({ 1'b0, word_addr[13:6] }), //9'b0 X Address (Row)
-        .yadr(word_addr[5:0]) // 6'b0 Y Address (Column)
+        .yadr(word_addr[5:0]), // 6'b0 Y Address (Column)
+        .din(32'b0)
     );
 
     reg is_busy = 0, is_valid = 0;

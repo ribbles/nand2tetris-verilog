@@ -6,3 +6,5 @@ build
 impl
 *.vcd
 sim/frames
+temp
+*.bak

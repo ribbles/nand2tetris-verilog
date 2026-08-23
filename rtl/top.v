@@ -8,13 +8,14 @@ module top (
     input  wire       btn_left,
     input  wire       btn_up,
     output wire [5:0] led,
-    // HDMI/ELVDS TMDS positive outputs (mapped in tangnano9k.cst)
-    output wire        O_tmds_clk_p,
-    output wire [2:0]  O_tmds_data_p
+    output wire       O_tmds_clk_p,
+    output wire       O_tmds_clk_n,
+    output wire [2:0] O_tmds_data_p,
+    output wire [2:0] O_tmds_data_n
 );
 
     wire [4:0] btn = {
-        btn_space,
+        btn_space | btn2,
         btn_enter,
         btn_backspace,
         btn_left,
@@ -27,6 +28,10 @@ module top (
         .btn(btn),
         .debug(led),
         .O_tmds_clk_p(O_tmds_clk_p),
-        .O_tmds_data_p(O_tmds_data_p)
+        .O_tmds_clk_n(O_tmds_clk_n),
+        .O_tmds_data_p(O_tmds_data_p),
+        .O_tmds_data_n(O_tmds_data_n)
     );
 endmodule
+
+

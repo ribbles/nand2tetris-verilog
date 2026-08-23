@@ -8,14 +8,15 @@
         <File path="rtl/alu.v" type="file.verilog" enable="1"/>
         <File path="rtl/computer.v" type="file.verilog" enable="1"/>
         <File path="rtl/cpu.v" type="file.verilog" enable="1"/>
+        <File path="ip/dvi_tx.v" type="file.verilog" enable="1"/>
         <File path="rtl/fetch_fsm.v" type="file.verilog" enable="1"/>
         <File path="rtl/flash608k_primitive.v" type="file.verilog" enable="1"/>
         <File path="rtl/flash608k_reader.v" type="file.verilog" enable="1"/>
+        <File path="rtl/hdmi.v" type="file.verilog" enable="1"/>
         <File path="rtl/keyboard.v" type="file.verilog" enable="1"/>
         <File path="rtl/memory.v" type="file.verilog" enable="1"/>
         <File path="rtl/pc.v" type="file.verilog" enable="1"/>
         <File path="rtl/ram16k.v" type="file.verilog" enable="1"/>
-        <File path="rtl/rom32k.v" type="file.verilog" enable="1"/>
         <File path="rtl/rom_flash.v" type="file.verilog" enable="1"/>
         <File path="rtl/screen.v" type="file.verilog" enable="1"/>
         <File path="rtl/top.v" type="file.verilog" enable="1"/>

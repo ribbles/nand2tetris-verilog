@@ -1,9 +1,11 @@
-module HDMI (
-    input wire sys_clk_27m,          // Physical Pin 52 (27 MHz Oscillator)
+module hdmi (
+    input wire clk,          // Physical Pin 52 (27 MHz Oscillator)
     
     // HDMI Output Interface (Mapped to your ELVDS pins in the .cst file)
     output wire O_tmds_clk_p,        // HDMI pins
+    output wire O_tmds_clk_n,
     output wire [2:0] O_tmds_data_p, // HDMI pins
+    output wire [2:0] O_tmds_data_n,
 
     // frame buffer data read interface
     output wire [13:0] hdmi_read_addr,  // Address requested by HDMI driver
@@ -20,7 +22,7 @@ module HDMI (
 
     // Instantiate your working clock module
     TangNano_HDMI_Clock_Gen hdmi_clock (
-        .sys_clk_27m(sys_clk_27m),
+        .clk(clk),
         .serial_clk_126m(serial_clk_126m),
         .pixel_clk_25_2m(pixel_clk_25_2m),
         .pll_lock(pll_lock)
@@ -106,93 +108,25 @@ module HDMI (
     DVI_TX_Top u_dvi_tx (
         .I_rst_n(hdmi_reset_n),
         .I_rgb_clk(pixel_clk_25_2m),
-        .I_ser_clk(serial_clk_126m),
-        .I_vdis(video_active_d),       // Pipeline delayed
-        .I_hsync(h_sync_d),             // Pipeline delayed
-        .I_vsync(v_sync_d),             // Pipeline delayed
+        .I_serial_clk(serial_clk_126m),
+        .I_rgb_de(video_active_d),       // Pipeline delayed
+        .I_rgb_hs(h_sync_d),             // Pipeline delayed
+        .I_rgb_vs(v_sync_d),             // Pipeline delayed
         .I_rgb_r(rgb_r),
         .I_rgb_g(rgb_g),
         .I_rgb_b(rgb_b),
-        .O_tmds_clk_p(O_tmds_clk_p),
-        .O_tmds_clk_n(),                // Unconnected: ELVDS primitive manages the negative line automatically
-        .O_tmds_data_p(O_tmds_data_p),
-        .O_tmds_data_n()                // Unconnected
-    );
-
-endmodule
-
-module hdmi_monochrome_display (
-    // --- System Control Inputs ---
-    input wire I_rst_n,             // Asynchronous active-low reset. 
-                                    // Connect this to your system reset combined with your PLL lock signal 
-                                    // (e.g., `assign hdmi_rst_n = sys_rst_n & pll_lock;`).
-
-    // --- Clock Routing Inputs ---
-    input wire I_rgb_clk,           // Pixel Clock (1x clock frequency). 
-                                    // For a standard 640x480 @ 60Hz resolution, feed this with 25.2 MHz.
-                                    // This drives the parallel video generation logic and pixel timing.
-
-    input wire I_ser_clk,           // Serialization Clock (5x clock frequency). 
-                                    // Must be exactly 5 times faster than I_rgb_clk and phase-aligned.
-                                    // For 640x480, feed this with 126.0 MHz to shift out 10-bit TMDS data via DDR.
-
-    // --- Video Timing Control Inputs ---
-    input wire I_vdis,              // Video Display Enable / Active Video.
-                                    // Must be driven HIGH when generating pixels inside the active window (e.g., 640x480).
-                                    // Must be driven LOW during horizontal/vertical blanking front and back porches.
-
-    input wire I_hsync,             // Horizontal Sync Pulse. 
-                                    // Pass the active-high or active-low timing pulse directly from your VGA timing generator.
-
-    input wire I_vsync,             // Vertical Sync Pulse. 
-                                    // Pass the timing pulse directly from your VGA timing generator.
-
-    // --- Parallel Color Data Inputs ---
-    input wire [7:0] I_rgb_r,       // Red Color Bus. 
-                                    // Parallel 8-bit red pixel data sampled on the rising edge of `I_rgb_clk`.
-                                    // For monochrome, tie all bits to your single-bit pixel value (e.g., `{8{pixel}}`).
-
-    input wire [7:0] I_rgb_g,       // Green Color Bus. 
-                                    // Parallel 8-bit green pixel data. 
-                                    // For monochrome, tie all bits to your single-bit pixel value.
-
-    input wire [7:0] I_rgb_b,       // Blue Color Bus. 
-                                    // Parallel 8-bit blue pixel data. 
-                                    // For monochrome, tie all bits to your single-bit pixel value.
-
-    // --- Physical Differential Serial Output Ports ---
-    output wire O_tmds_clk_p,       // TMDS Positive Clock Channel.
-    output wire O_tmds_clk_n,       // TMDS Negative Clock Channel.
-                                    // This differential pair forwards the 1x Pixel Clock over the HDMI cable 
-                                    // to the monitor for signal synchronization.
-
-    output wire [2:0] O_tmds_data_p, // TMDS Positive Data Channels.
-    output wire [2:0] O_tmds_data_n  // TMDS Negative Data Channels.
-                                    // 3-lane differential bus carrying encoded serial video streams:
-                                    // Channel 0: Transmits Blue data, HSYNC, and VSYNC pulses.
-                                    // Channel 1: Transmits Green data and control packets.
-                                    // Channel 2: Transmits Red data.
-    );
-    DVI_TX dvi_tx_inst (
-        .I_rst_n(I_rst_n),
-        .I_rgb_clk(I_rgb_clk),
-        .I_ser_clk(I_ser_clk),
-        .I_vdis(I_vdis),
-        .I_hsync(I_hsync),
-        .I_vsync(I_vsync),
-        .I_rgb_r(I_rgb_r),
-        .I_rgb_g(I_rgb_g),
-        .I_rgb_b(I_rgb_b),
         .O_tmds_clk_p(O_tmds_clk_p),
         .O_tmds_clk_n(O_tmds_clk_n),
         .O_tmds_data_p(O_tmds_data_p),
         .O_tmds_data_n(O_tmds_data_n)
     );
+
 endmodule
+
 
 // Structural wrapper for Yosys combining rPLL and CLKDIV using working repo parameters
 module TangNano_HDMI_Clock_Gen (
-    input wire sys_clk_27m,      // Pin connected to the physical 27 MHz crystal oscillator
+    input wire clk,      // Pin connected to the physical 27 MHz crystal oscillator
     output wire serial_clk_126m, // 126.0 MHz (5x serial clock routed to DVI_TX)
     output wire pixel_clk_25_2m, // 25.2 MHz (1x pixel clock routed to DVI_TX & Video Timing)
     output wire pll_lock        // High when clocks are stable and ready
@@ -207,7 +141,7 @@ module TangNano_HDMI_Clock_Gen (
         .ODIV_SEL(4),            // Output Divider: 4
         .DEVICE("GW1NR-9C")      // Set to match your target Tang Nano 9K/20K silicon properties
     ) u_rpll_126m (
-        .CLKIN(sys_clk_27m),
+        .CLKIN(clk),
         .CLKOUT(serial_clk_126m),// Outputs clean 126.0 MHz line
         .LOCK(pll_lock),
         
@@ -319,3 +253,10 @@ module hdmi_timing (
     end
 
 endmodule
+
+
+
+
+
+
+

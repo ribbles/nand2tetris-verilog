@@ -37,7 +37,7 @@ module tb_screen;
         @(posedge clk); load = 0;
         @(negedge clk); #1; check_value(out, 16'h1234, "read back word zero");
         @(posedge clk); address = 13'd8191; in = 16'hbeef; load = 1;
-        @(negedge clk); #1; check_value(out, 16'h0000, "write highest address returns old word");
+        @(negedge clk); #1; check_value(out, 16'h1234, "write holds previous CPU read value");
         @(posedge clk); load = 0; read_addr = 14'd16382;
         @(negedge clk); #1; check_value(out, 16'hbeef, "read highest address");
         @(posedge clk); #1; check_value({8'h00, read_data}, 16'h00ef, "display read low byte");

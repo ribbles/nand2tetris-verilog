@@ -33,31 +33,10 @@ endmodule
 module DVI_TX_Top (
     input  wire I_rst_n,
     input  wire I_rgb_clk,
-    input  wire I_ser_clk,
-    input  wire I_vdis,
-    input  wire I_hsync,
-    input  wire I_vsync,
-    input  wire [7:0] I_rgb_r,
-    input  wire [7:0] I_rgb_g,
-    input  wire [7:0] I_rgb_b,
-    output wire O_tmds_clk_p,
-    output wire O_tmds_clk_n,
-    output wire [2:0] O_tmds_data_p,
-    output wire [2:0] O_tmds_data_n
-);
-    assign O_tmds_clk_p = 1'b0;
-    assign O_tmds_clk_n = 1'b0;
-    assign O_tmds_data_p = 3'b000;
-    assign O_tmds_data_n = 3'b000;
-endmodule
-
-module DVI_TX (
-    input  wire I_rst_n,
-    input  wire I_rgb_clk,
-    input  wire I_ser_clk,
-    input  wire I_vdis,
-    input  wire I_hsync,
-    input  wire I_vsync,
+    input  wire I_serial_clk,
+    input  wire I_rgb_de,
+    input  wire I_rgb_hs,
+    input  wire I_rgb_vs,
     input  wire [7:0] I_rgb_r,
     input  wire [7:0] I_rgb_g,
     input  wire [7:0] I_rgb_b,
