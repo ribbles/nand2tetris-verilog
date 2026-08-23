@@ -6,7 +6,8 @@ and set up to run on the Tang Nano 9K using GOWIN.
 1. [Wikipedia - Hack Computer](https://en.wikipedia.org/wiki/Hack_computer)
 
 
-![Pong Running on Hardware](docs/pong_fpga.mov)
+![Pong Running on Hardware](docs/pong_movie.gif)
+
 
 
 ## Differences from Hack Computer
@@ -84,7 +85,7 @@ make sim_all
 Using the test bench/sim we can can skip the HDMI and sample the framebuffer 
 memory and create amovie from it to run the CPU and see that it's working.
 
-![Pong](docs/pong_movie.gif)
+
 
 > WARNING: Command takes up to 10 minutes!
 
@@ -102,7 +103,7 @@ make flash
 
 ## FPGA Wiring
 
-![Pong](docs/hdmi.jpg)
+![Pong Running on Hardware](docs/pong_fpga.gif
 
 ## Debug LEDs
 
