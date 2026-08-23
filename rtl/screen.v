@@ -26,10 +26,14 @@ module Screen (
 integer i;
   initial begin
     for (i = 0; i < 2000; i = i + 4) begin
-      frame_buffer_lo[i] = 8'h00;
+      frame_buffer_lo[i  ] = 8'h00;
       frame_buffer_lo[i+1] = 8'h00;
-      frame_buffer_hi[i] = 8'hFF;
+      frame_buffer_lo[i+2] = 8'h00;
+      frame_buffer_lo[i+3] = 8'h00;
+      frame_buffer_hi[i  ] = 8'hFF;
       frame_buffer_hi[i+1] = 8'hFF;
+      frame_buffer_hi[i+2] = 8'hFF;
+      frame_buffer_hi[i+3] = 8'hFF;
     end
   end
   //`endif

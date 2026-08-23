@@ -32,26 +32,17 @@ verify: sim_all
 
 bitstream: gowin_bitstream
 
-Prog.hack: $(PROGRAM)
-	@cp $< $@
-
 # The current DVI transmitter is encrypted Gowin IP.  Build with the Gowin
 # IDE flow; the former open-source HDMI/Yosys flow is intentionally removed.
 gowin_bitstream: Prog.hack build_gowin.tcl tangnano9k.cst tangnano9k.sdc
 	"$(GOWIN_SH)" build_gowin.tcl
 	cp -f $(GOWIN_OUTPUT) $(BITSTREAM)
 
-Prog.bin: Prog.hack scripts/hack2bin.py
-	python scripts/hack2bin.py $< $@
+Prog.bin:
+	python scripts/hack2bin.py Prog.bin $(PROGRAM)
 
 flash:
-	$(OPENFPGA) -b $(BOARD) -f top.fs
-
-sram: $(BITSTREAM)
-	$(OPENFPGA) -b $(BOARD) -m $<
-
-flash_all: $(BITSTREAM) Prog.bin
-	$(OPENFPGA) -b $(BOARD) -f $< --user-flash Prog.bin
+	$(OPENFPGA) -b $(BOARD) -f top.fs --user-flash Prog.bin
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -60,7 +51,7 @@ $(SIM_FRAMES_DIR):
 	mkdir -p $@
 
 define SIM_RULE
-sim_$(1): | $(BUILD_DIR) $(SIM_FRAMES_DIR)
+sim_$(1): | $(BUILD_DIR)
 	$(IVERILOG) -g2012 -DSIMULATION -s tb_$(1) -o $(BUILD_DIR)/tb_$(1).out $(2) sim/tb_$(1).v
 	$(VVP) $(BUILD_DIR)/tb_$(1).out
 endef
@@ -80,6 +71,7 @@ $(eval $(call SIM_RULE,computer,sim/flash608k_model.v sim/hdmi_stubs.v $(RTL)))
 $(eval $(call SIM_RULE,play_pong,sim/flash608k_model.v sim/hdmi_stubs.v $(RTL)))
 
 movie: | $(BUILD_DIR) $(SIM_FRAMES_DIR)
+	mkdir -p $(SIM_FRAMES_DIR)
 	rm -f $(SIM_FRAMES_DIR)/frame_*.pbm sim/pong_movie.gif
 	$(MAKE) sim_play_pong
 	python scripts/make_movie.py --frames-dir $(SIM_FRAMES_DIR) --output sim/pong_movie.gif
@@ -87,10 +79,8 @@ movie: | $(BUILD_DIR) $(SIM_FRAMES_DIR)
 sim_all: sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer
 
 clean:
-	rm -rf $(BUILD_DIR) $(SIM_FRAMES_DIR) sim/pong_movie.gif
+	rm -rf $(BUILD_DIR) impl sim/*.vcd
 	rm -f top.json top_pnr.json $(BITSTREAM) Prog.hack Prog.bin build.log
-	rm -rf sim/*.vcd
-	rm -rf impl
 
 .PHONY: all verify bitstream gowin_bitstream flash sram flash_all clean movie sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer sim_play_pong sim_computer_compile
 

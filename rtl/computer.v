@@ -78,15 +78,48 @@ module Computer (
         .O_tmds_data_n(O_tmds_data_n)
     );
 
+    reg reset_released_seen = 1'b0;
     reg rom_seen = 1'b0;
+    reg nonzero_instruction_seen = 1'b0;
+    reg pc_moved_seen = 1'b0;
+    reg mem_write_seen = 1'b0;
+    reg screen_write_seen = 1'b0;
 
     always @(posedge clk) begin
-        if (reset)
+        if (reset) begin
+            reset_released_seen <= 1'b0;
             rom_seen <= 1'b0;
-        else if (rom_valid)
-            rom_seen <= 1'b1;
+            nonzero_instruction_seen <= 1'b0;
+            pc_moved_seen <= 1'b0;
+            mem_write_seen <= 1'b0;
+            screen_write_seen <= 1'b0;
+        end else begin
+            reset_released_seen <= 1'b1;
+
+            if (rom_valid) begin
+                rom_seen <= 1'b1;
+                if (rom_data != 16'd0)
+                    nonzero_instruction_seen <= 1'b1;
+            end
+
+            if (pc != 15'd0)
+                pc_moved_seen <= 1'b1;
+
+            if (writeM) begin
+                mem_write_seen <= 1'b1;
+                if (addressM[14:13] == 2'b10)
+                    screen_write_seen <= 1'b1;
+            end
+        end
     end
 
-    assign debug = {rom_seen, ~btn};
+    assign debug = {
+        reset_released_seen,
+        rom_seen,
+        nonzero_instruction_seen,
+        pc_moved_seen,
+        mem_write_seen,
+        screen_write_seen
+    };
 
 endmodule

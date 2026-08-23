@@ -22,11 +22,12 @@ module top (
         btn_space & btn2
     };
 
+    wire reset = ~btn1;
     wire [5:0] debug;
 
     Computer computer (
         .clk(clk),
-        .reset(btn1),
+        .reset(reset),
         .btn(btn),
         .debug(debug),
         .O_tmds_clk_p(O_tmds_clk_p),
