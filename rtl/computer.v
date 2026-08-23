@@ -78,6 +78,15 @@ module Computer (
         .O_tmds_data_n(O_tmds_data_n)
     );
 
-    assign debug = pc[5:0];
+    reg rom_seen = 1'b0;
+
+    always @(posedge clk) begin
+        if (reset)
+            rom_seen <= 1'b0;
+        else if (rom_valid)
+            rom_seen <= 1'b1;
+    end
+
+    assign debug = {rom_seen, ~btn};
 
 endmodule

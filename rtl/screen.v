@@ -22,19 +22,19 @@ module Screen (
     reg [7:0] frame_buffer_lo [0:8191];
     reg [7:0] frame_buffer_hi [0:8191];
 
-    `ifdef SIMULATION
-    integer i;
-    
-    initial begin
-        out = 16'h0000;
-        for (i = 0; i < 8192; i = i + 1) begin
-            frame_buffer_lo[i] = 8'h00;
-            frame_buffer_hi[i] = 8'h00;
-        end
+  //`ifdef SIMULATION
+integer i;
+  initial begin
+    for (i = 0; i < 2000; i = i + 4) begin
+      frame_buffer_lo[i] = 8'h00;
+      frame_buffer_lo[i+1] = 8'h00;
+      frame_buffer_hi[i] = 8'hFF;
+      frame_buffer_hi[i+1] = 8'hFF;
     end
-    `endif
+  end
+  //`endif
 
-    // Port A: Hack CPU, one 16-bit word per address.
+  // Port A: Hack CPU, one 16-bit word per address.
     always @(posedge clk) begin
         if (load) begin
             frame_buffer_lo[address] <= in[7:0];

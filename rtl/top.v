@@ -15,23 +15,25 @@ module top (
 );
 
     wire [4:0] btn = {
-        btn_space | btn2,
-        btn_enter,
-        btn_backspace,
+        btn_up,
         btn_left,
-        btn_up
+        btn_backspace,
+        btn_enter,
+        btn_space & btn2
     };
+
+    wire [5:0] debug;
 
     Computer computer (
         .clk(clk),
         .reset(btn1),
         .btn(btn),
-        .debug(led),
+        .debug(debug),
         .O_tmds_clk_p(O_tmds_clk_p),
         .O_tmds_clk_n(O_tmds_clk_n),
         .O_tmds_data_p(O_tmds_data_p),
         .O_tmds_data_n(O_tmds_data_n)
     );
+
+    assign led = ~debug;
 endmodule
-
-

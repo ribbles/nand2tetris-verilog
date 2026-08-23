@@ -18,9 +18,10 @@ add_file rtl/top.v
 add_file ip/dvi_tx.v
 
 add_file tangnano9k.cst
+add_file tangnano9k.sdc
 
 set_option -top_module top
 set_option -verilog_std v2001
-set_option -output_base_name nand2tetris
+set_option -output_base_name top
 
 run all

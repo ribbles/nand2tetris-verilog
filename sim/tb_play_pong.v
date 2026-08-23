@@ -82,7 +82,8 @@ module tb_play_pong;
     // Task to export the current 512x256 frame buffer as a binary PBM (P4) file
     task dump_screen_pbm(input integer f_idx, output integer act_pix);
         integer r, w, b;
-        reg [15:0] word_val;
+        reg [8:0] word_hi;
+        reg [8:0] word_lo;
         begin
             act_pix = 0;
             $sformat(filename, "frames/frame_%04d.pbm", f_idx);
@@ -95,19 +96,18 @@ module tb_play_pong;
                         $fwrite(fd, "P4\n512 256\n");
 
                         // Nand2Tetris Hack screen mapping: 256 rows, 32 16-bit words per row.
-                        for (r = 0; r < 256; r = r + 1) begin
-                            for (w = 0; w < 32; w = w + 1) begin
-                                word_val = mem.scr.frame_buffer[r * 32 + w];
+                        for (r = 0; r < 256; r++) begin
+                            for (w = 0; w < 32; w++) begin
+                                word_lo = mem.scr.frame_buffer_lo[r * 16 + w];
+                                word_hi = mem.scr.frame_buffer_hi[r * 16 + w];
                                 // Count active bits in this word.
-                                act_pix += $countones(word_val);
-                                // for (b = 0; b < 16; b = b + 1) begin
-                                //     if (word_val[b] == 1'b1) act_pix = act_pix + 1;
-                                // end
+                                act_pix += $countones(word_lo);
+                                act_pix += $countones(word_hi);
                                 // Hack bit 0 is the leftmost pixel; PBM emits each byte MSB first.
-                                $fwrite(fd, "%c", {word_val[0], word_val[1], word_val[2], word_val[3],
-                                                    word_val[4], word_val[5], word_val[6], word_val[7]});
-                                $fwrite(fd, "%c", {word_val[8], word_val[9], word_val[10], word_val[11],
-                                                    word_val[12], word_val[13], word_val[14], word_val[15]});
+                                $fwrite(fd, "%c", {word_lo[0], word_lo[1], word_lo[2], word_lo[3],
+                                                    word_lo[4], word_lo[5], word_lo[6], word_lo[7]});
+                                $fwrite(fd, "%c", {word_hi[0], word_hi[1], word_hi[2], word_hi[3],
+                                                    word_hi[4], word_hi[5], word_hi[6], word_hi[7]});
                             end
                         end
                 $fclose(fd);

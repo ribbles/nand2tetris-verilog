@@ -20,7 +20,6 @@ BITSTREAM      ?= top.fs
 BUILD_DIR      ?= build
 PROGRAM        ?= sim/hack/Pong.hack
 
-IP_RTL      := $(wildcard ip/*.v)
 RTL      	:= $(wildcard rtl/*.v)
 
 SIM_FRAMES_DIR ?= sim/frames
@@ -38,7 +37,7 @@ Prog.hack: $(PROGRAM)
 
 # The current DVI transmitter is encrypted Gowin IP.  Build with the Gowin
 # IDE flow; the former open-source HDMI/Yosys flow is intentionally removed.
-gowin_bitstream: Prog.hack build_gowin.tcl tangnano9k.cst
+gowin_bitstream: Prog.hack build_gowin.tcl tangnano9k.cst tangnano9k.sdc
 	"$(GOWIN_SH)" build_gowin.tcl
 	cp -f $(GOWIN_OUTPUT) $(BITSTREAM)
 
@@ -91,6 +90,7 @@ clean:
 	rm -rf $(BUILD_DIR) $(SIM_FRAMES_DIR) sim/pong_movie.gif
 	rm -f top.json top_pnr.json $(BITSTREAM) Prog.hack Prog.bin build.log
 	rm -rf sim/*.vcd
+	rm -rf impl
 
 .PHONY: all verify bitstream gowin_bitstream flash sram flash_all clean movie sim_all sim_alu sim_cpu sim_keyboard sim_memory sim_pc sim_ram16k sim_rom32k sim_screen sim_flash_reader sim_rom_flash sim_computer sim_play_pong sim_computer_compile
 
